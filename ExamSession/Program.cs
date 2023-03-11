@@ -6,7 +6,7 @@ namespace ExamSession
 {
     class Program
     {
-        static int CreateTables(SqlConnection connection)
+        static void CreateTables(SqlConnection connection)
         {
             SqlCommand command = new SqlCommand(@"
 CREATE TABLE Study_Group
@@ -14,72 +14,89 @@ CREATE TABLE Study_Group
 	number_group CHARACTER VARYING(10),
     Specialization CHARACTER VARYING(30),
     elder INTEGER,
-    Tutor_ID INTEGER,
-     Number_of_students INTEGER,
+    tutor INTEGER,
+    number_of_students INTEGER,
 	PRIMARY KEY(number_group)
 );
 
 CREATE TABLE Student
 (
-    Id INT,
-    Name CHARACTER VARYING(15),
+    student_id INT IDENTITY,
+    Name NVARCHAR(15) COLLATE Cyrillic_General_CI_AS,
 	Last_Name CHARACTER VARYING(15),
-    Age INTEGER CHECK(Age >0),
-	Phone_Number CHARACTER VARYING(10) CHECK (Phone_Number LIKE '__________'),
-	Email CHARACTER VARYING(20) CHECK(Email LIKE '%@%.%'),
-	Number_of_Group CHARACTER VARYING(10)
+    age INTEGER 
+		CHECK(age >0),
+	phone_number CHARACTER VARYING(16),
+	email CHARACTER VARYING(20) 
+		CHECK(email LIKE '%@%.%'),
+	number_group CHARACTER VARYING(10),
+	FOREIGN KEY (number_group) REFERENCES Study_Group (number_group) ON DELETE SET NULL
 );
 
 CREATE TABLE Item
 (
-	Id INT,
-    Name CHARACTER VARYING(25), 
+	item_id INT IDENTITY,
+    name CHARACTER VARYING(40), 
 	number_of_hours INTEGER,
-	Description CHARACTER VARYING(500)
+	description CHARACTER VARYING(500)
 );
 
 
 CREATE TABLE Teacher
 (
-	Id INT,
-    Name CHARACTER VARYING(15),
-	Last_Name CHARACTER VARYING(15),
-	Patronymic CHARACTER VARYING(15),
-    Age INTEGER CHECK(Age >18),
-	Phone_Number CHARACTER VARYING(10) CHECK (Phone_Number LIKE '__________'),
-	Email CHARACTER VARYING(40) CHECK(Email LIKE '%@%.%')
+	teacher_id INT IDENTITY,
+    name CHARACTER VARYING(15),
+	last_name CHARACTER VARYING(15),
+	patronymic CHARACTER VARYING(15),
+    age INTEGER 
+		CHECK(age >18),
+	phone_number CHARACTER VARYING(16),
+	email CHARACTER VARYING(40) 
+		CHECK(email LIKE '%@%.%')
 );
 
 CREATE TABLE Assessment
 (
-	Id INT,
-	Item_Code INTEGER,
-	Student_id INTEGER,
-	Score INTEGER CHECK (Score>=0 AND score <=100),
- date_exam DATE
+	assessment_id INTEGER IDENTITY,
+    item_id INT,
+    student_id INT,
+	score INTEGER 
+		CHECK (score>=0 AND score <=100),
+ 	exam_date DATE
+
+
 ); 
+
+
+
 
 CREATE TABLE department
 (
-	Id INT,
-    Name CHARACTER VARYING(35),
-    audience_number INTEGER CHECK(audience_number >0),
-	Phone_Number CHARACTER VARYING(10) CHECK (Phone_Number LIKE '__________'),
-	Email CHARACTER VARYING(20) CHECK(Email LIKE '%@%.%'),
-	number_of_employees INTEGER CHECK(number_of_employees > 0),
-	head_of_the_department INTEGER
+	department_id  INT IDENTITY,
+    name CHARACTER VARYING(35),
+    audience_number INTEGER 
+		CHECK(audience_number >0),
+	phone_number CHARACTER VARYING(16),
+	email CHARACTER VARYING(20) 
+		CHECK(email LIKE '%@%.%'),
+	number_of_employees INTEGER 
+		CHECK(number_of_employees > 0),
+	head_of_the_department INTEGER UNIQUE
+
 );
 
 CREATE TABLE teacher_item (
-	Id INT,
-	Item_Code INTEGER,
+	Id INT IDENTITY,
+	item_id INTEGER,
 	teacher_id INTEGER
+
+
 );
                 ", connection);
-            return command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
         }
 
-        static int CreateDataInTables(SqlConnection connection)
+        static void CreateDataInTables(SqlConnection connection)
         {
             SqlCommand command = new SqlCommand(@"
 INSERT INTO study_group 
@@ -89,7 +106,7 @@ VALUES
 ('09-022','Прикладная математика', 20);
 
 INSERT INTO student
-(name, last_name, age, phone_number, email, Number_of_Group)
+(name, last_name, age, phone_number, email, number_group)
 VALUES ('Иван','Алексеев', 18, '8123456789', 'IVAN@gmail.com', '09-022'),
 ('Михаил','Горячев', 20, '8127456789', 'Misha@gmail.com', '09-022'),
 ('Георгий','Костин', 18, '8164456789', 'Geo@yandex.com', '09-021'),
@@ -110,20 +127,20 @@ VALUES
 ('Кафедра ИИ', 1201, '8234157937', 'department@stud.ru', 12, 5);
 
 UPDATE study_group
-SET elder = 1, tutor_id=1
+SET elder = 1, tutor=1
 WHERE number_group = '09-021';
 UPDATE study_group
-SET elder = 2, tutor_id=3
+SET elder = 2, tutor=3
 WHERE number_group = '09-022';
 
-INSERT INTO assessment(item_code, student_id, score, date_exam)
+INSERT INTO assessment(item_id, student_id, score, exam_date)
 VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'),
 (1, 1, 47, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'),
 (1, 2, 96, '2021-06-18'),(2, 2, 84, '2021-06-18'),(3, 2, 16, '2021-06-18'),
 (1, 3, 56, '2021-06-18'),(2, 3, 48, '2021-06-18'),(3, 3, 72, '2021-06-18'),
 (1, 3, 27, '2022-01-18'),(2, 3, 76, '2022-01-18'),(3, 3, 79, '2022-01-18');
                 ", connection);
-            return command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
         }
         static void RebootDataBase(SqlConnection connection)
         {
@@ -133,7 +150,6 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             command.ExecuteNonQuery();
             command.CommandText = "USE ExamSession";
             command.ExecuteNonQuery();
-
         }
         static async Task ShowTable(SqlDataReader reader)
         {
@@ -154,6 +170,39 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
                     Console.WriteLine();
                 }
             }
+        }
+        static void ShowAllTables(SqlConnection connection)
+        {
+            Console.WriteLine("\n\t\tStudents");
+            string sqlExpression = "SELECT * FROM Student";
+            SqlCommand command = new SqlCommand(sqlExpression, connection);
+            SqlDataReader reader = command.ExecuteReader();
+            ShowTable(reader);
+            reader.Close();
+
+            Console.WriteLine("\n\t\tstudy_group");
+            command.CommandText = "SELECT * FROM study_group";
+            reader = command.ExecuteReader();
+            ShowTable(reader);
+            reader.Close();
+
+            Console.WriteLine("\n\t\tItem");
+            command.CommandText = "SELECT * FROM Item";
+            reader = command.ExecuteReader();
+            ShowTable(reader);
+            reader.Close();
+
+            Console.WriteLine("\n\t\tdepartment");
+            command.CommandText = "SELECT * FROM department";
+            reader = command.ExecuteReader();
+            ShowTable(reader);
+            reader.Close();
+
+            Console.WriteLine("\n\t\tassessment");
+            command.CommandText = "SELECT * FROM assessment";
+            reader = command.ExecuteReader();
+            ShowTable(reader);
+            reader.Close();
         }
         static async Task Main(string[] args)
         {
@@ -194,16 +243,11 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             using (connection = new SqlConnection(connectionString))
             {
                 connection.Open();
-                Console.WriteLine(CreateTables(connection));
-                Console.WriteLine(CreateDataInTables(connection));
-
-
-                string sqlExpression = "SELECT * FROM assessment";
-                SqlCommand command = new SqlCommand(sqlExpression, connection);
-                SqlDataReader reader = await command.ExecuteReaderAsync();
-                await ShowTable(reader);
-                
-                }
+                CreateTables(connection);
+                CreateDataInTables(connection);
+                ShowAllTables(connection);
+               
+            }
             Console.WriteLine("Программа завершила работу.");
             Console.Read();
         }
