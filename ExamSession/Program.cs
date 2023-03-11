@@ -142,14 +142,16 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
                 ", connection);
             command.ExecuteNonQuery();
         }
-        static void RebootDataBase(SqlConnection connection)
+        static void CreateDataBase(SqlConnection connection)
         {
             SqlCommand command = new SqlCommand("DROP DATABASE ExamSession;", connection);
-            command.ExecuteNonQuery();
+            //command.ExecuteNonQuery();
             command.CommandText = "CREATE DATABASE ExamSession;";
             command.ExecuteNonQuery();
             command.CommandText = "USE ExamSession";
             command.ExecuteNonQuery();
+            CreateTables(connection);
+            CreateDataInTables(connection);
         }
         static async Task ShowTable(SqlDataReader reader)
         {
@@ -204,26 +206,25 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             ShowTable(reader);
             reader.Close();
         }
+        static void ShowInfoAboutConnection(SqlConnection connection)
+        {
+            Console.WriteLine("Свойства подключения:");
+            Console.WriteLine($"\tСтрока подключения: {connection.ConnectionString}");
+            Console.WriteLine($"\tБаза данных: {connection.Database}");
+            Console.WriteLine($"\tСервер: {connection.DataSource}");
+            Console.WriteLine($"\tВерсия сервера: {connection.ServerVersion}");
+            Console.WriteLine($"\tСостояние: {connection.State}");
+            Console.WriteLine($"\tWorkstationld: {connection.WorkstationId}");
+        }
         static async Task Main(string[] args)
         {
             string connectionString = "Server=(localdb)\\mssqllocaldb;Trusted_Connection=True;";
-
-            // Создание подключения
             SqlConnection connection = new SqlConnection(connectionString);
             try
             {
-                // Открываем подключение
                 connection.Open();
-                Console.WriteLine("Подключение открыто");
-                // Вывод информации о подключении
-                Console.WriteLine("Свойства подключения:");
-                Console.WriteLine($"\tСтрока подключения: {connection.ConnectionString}");
-                Console.WriteLine($"\tБаза данных: {connection.Database}");
-                Console.WriteLine($"\tСервер: {connection.DataSource}");
-                Console.WriteLine($"\tВерсия сервера: {connection.ServerVersion}");
-                Console.WriteLine($"\tСостояние: {connection.State}");
-                Console.WriteLine($"\tWorkstationld: {connection.WorkstationId}");
-                RebootDataBase( connection );
+                ShowInfoAboutConnection(connection);
+                //CreateDataBase( connection );
             }
             catch (SqlException ex)
             {
@@ -231,20 +232,15 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             }
             finally
             {
-                // если подключение открыто
                 if (connection.State == ConnectionState.Open)
                 {
-                    // закрываем подключение
                     await connection.CloseAsync();
-                    Console.WriteLine("Подключение закрыто...");
                 }
             }
             connectionString = "Server=(localdb)\\mssqllocaldb;Database=ExamSession;Trusted_Connection=True;";
             using (connection = new SqlConnection(connectionString))
             {
                 connection.Open();
-                CreateTables(connection);
-                CreateDataInTables(connection);
                 ShowAllTables(connection);
                
             }
