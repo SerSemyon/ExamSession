@@ -99,6 +99,15 @@ CREATE TABLE teacher_item (
         static void CreateDataInTables(SqlConnection connection)
         {
             SqlCommand command = new SqlCommand(@"
+INSERT INTO Teacher
+(name, last_name, age, phone_number, email, patronymic)
+VALUES ('Иван','Алексеев', 48, '8123456789', 'IVAN@gmail.com', 'Георгиевич'),
+('Михаил','Горячев', 50, '8127456789', 'Misha@gmail.com', 'Юрьевич'),
+('Георгий','Костин', 48, '8164456789', 'Geo@yandex.com', 'Артёмович'),
+('Олег','Федоров', 89, '8123454789', 'Oleg@gmail.com', 'Семёнович'),
+('Татьяна','Панкратова', 48, '8126556789', 'Tan@gmail.com', 'Викторовна'),
+('Ольга','Леонтьева', 38, '8125356789', 'Olga@gmail.com', 'Николаевна');
+
 INSERT INTO study_group 
 (number_group, Specialization, number_of_students)
 VALUES
@@ -145,7 +154,7 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
         static void CreateDataBase(SqlConnection connection)
         {
             SqlCommand command = new SqlCommand("DROP DATABASE ExamSession;", connection);
-            //command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
             command.CommandText = "CREATE DATABASE ExamSession;";
             command.ExecuteNonQuery();
             command.CommandText = "USE ExamSession";
@@ -194,6 +203,12 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             ShowTable(reader);
             reader.Close();
 
+            Console.WriteLine("\n\t\tTeacher");
+            command.CommandText = "SELECT * FROM Teacher";
+            reader = command.ExecuteReader();
+            ShowTable(reader);
+            reader.Close();
+
             Console.WriteLine("\n\t\tdepartment");
             command.CommandText = "SELECT * FROM department";
             reader = command.ExecuteReader();
@@ -224,7 +239,7 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             {
                 connection.Open();
                 ShowInfoAboutConnection(connection);
-                //CreateDataBase( connection );
+                CreateDataBase( connection );
             }
             catch (SqlException ex)
             {
@@ -242,9 +257,7 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             {
                 connection.Open();
                 ShowAllTables(connection);
-               
             }
-            Console.WriteLine("Программа завершила работу.");
             Console.Read();
         }
     }
