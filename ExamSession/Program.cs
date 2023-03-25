@@ -2,6 +2,8 @@
 using System;
 using System.Data;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+
 namespace ExamSession
 {
     class Program
@@ -231,6 +233,33 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             Console.WriteLine($"\tСостояние: {connection.State}");
             Console.WriteLine($"\tWorkstationld: {connection.WorkstationId}");
         }
+        static void Requests(SqlConnection connection)
+        {
+            Console.WriteLine("\nВывести данные куратора группы 09-022");
+            string sqlExpression = "SELECT * FROM teacher \r\nWHERE teacher_id =\r\n(\r\nSELECT tutor \r\nFROM study_group \r\nWHERE number_group = '09-022'\r\n);\r\n";
+            SqlCommand command = new SqlCommand(sqlExpression, connection);
+            SqlDataReader reader = command.ExecuteReader();
+            ShowTable(reader);
+            reader.Close();
+
+            Console.WriteLine("\nсписок группы 09-022");
+            command.CommandText = "SELECT name, last_name \r\nFROM student \r\nWHERE number_group = '09-022';\r\n";
+            reader = command.ExecuteReader();
+            ShowTable(reader);
+            reader.Close();
+
+            Console.WriteLine("\nданные студентов, не появившихся ни на одном экзамене");
+            command.CommandText = "SELECT * FROM student \r\nWHERE student_id NOT IN \r\n(\r\nSELECT student_id \r\nFROM assessment\r\n); \r\n";
+            reader = command.ExecuteReader();
+            ShowTable(reader);
+            reader.Close();
+
+            Console.WriteLine("\nсписок студентов, у которых есть хотя бы одна пятёрка");
+            command.CommandText = "SELECT * FROM student \r\nWHERE student_id IN \r\n(\r\nSELECT student_id \r\nFROM assessment\r\n WHERE score > 86); \r\n";
+            reader = command.ExecuteReader();
+            ShowTable(reader);
+            reader.Close();
+        }
         static async Task Main(string[] args)
         {
             string connectionString = "Server=(localdb)\\mssqllocaldb;Trusted_Connection=True;";
@@ -256,7 +285,8 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             using (connection = new SqlConnection(connectionString))
             {
                 connection.Open();
-                ShowAllTables(connection);
+                Requests(connection);
+                //ShowAllTables(connection);
             }
             Console.Read();
         }
