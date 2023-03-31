@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ExamSession.Таблицы
 {
-    internal class StudyGroup
+    public class StudyGroup
     {
         [Key]
         public string number_group { get; set; }

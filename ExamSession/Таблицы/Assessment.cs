@@ -7,7 +7,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace ExamSession.Таблицы
 {
-    internal class Assessment
+    public class Assessment
     {
         public int Id { get; set; }
         public Item item { get; set; }

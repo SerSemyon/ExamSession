@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ExamSession.Таблицы
 {
-    internal class Item
+    public class Item
     {
         public int Id { get; set; }
         public string Name { get; set; }

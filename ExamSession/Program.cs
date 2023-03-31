@@ -285,8 +285,8 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             using (connection = new SqlConnection(connectionString))
             {
                 connection.Open();
-                Requests(connection);
-                //ShowAllTables(connection);
+                //Requests(connection);
+                ShowAllTables(connection);
             }
             Console.Read();
         }
