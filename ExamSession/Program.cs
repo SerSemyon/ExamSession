@@ -3,11 +3,14 @@ using System;
 using System.Data;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 namespace ExamSession
 {
     class Program
     {
+        //public static string connectionString = "Server=(localdb)\\mssqllocaldb;Trusted_Connection=True;";
+        public static string connectionString = "Server=localhost;Port=5432;Database=ExamSession;User ID=postgres; Password=503992";
         static void CreateTables(SqlConnection connection)
         {
             SqlCommand command = new SqlCommand(@"
@@ -223,16 +226,6 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             ShowTable(reader);
             reader.Close();
         }
-        static void ShowInfoAboutConnection(SqlConnection connection)
-        {
-            Console.WriteLine("Свойства подключения:");
-            Console.WriteLine($"\tСтрока подключения: {connection.ConnectionString}");
-            Console.WriteLine($"\tБаза данных: {connection.Database}");
-            Console.WriteLine($"\tСервер: {connection.DataSource}");
-            Console.WriteLine($"\tВерсия сервера: {connection.ServerVersion}");
-            Console.WriteLine($"\tСостояние: {connection.State}");
-            Console.WriteLine($"\tWorkstationld: {connection.WorkstationId}");
-        }
         static void Requests(SqlConnection connection)
         {
             Console.WriteLine("\nВывести данные куратора группы 09-022");
@@ -262,27 +255,31 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
         }
         static async Task Main(string[] args)
         {
-            string connectionString = "Server=(localdb)\\mssqllocaldb;Trusted_Connection=True;";
-            SqlConnection connection = new SqlConnection(connectionString);
-            try
+            using (ExamSessionContext db = new ExamSessionContext())
             {
-                connection.Open();
-                ShowInfoAboutConnection(connection);
-                CreateDataBase( connection );
+
             }
-            catch (SqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                if (connection.State == ConnectionState.Open)
-                {
-                    await connection.CloseAsync();
-                }
-            }
-            connectionString = "Server=(localdb)\\mssqllocaldb;Database=ExamSession;Trusted_Connection=True;";
-            using (connection = new SqlConnection(connectionString))
+            //SqlConnection connection = new SqlConnection(connectionString);
+            //try
+            //{
+            //    connection.Open();
+            //    ShowInfoAboutConnection(connection);
+            //    CreateDataBase( connection );
+            //}
+            //catch (SqlException ex)
+            //{
+            //    Console.WriteLine(ex.Message);
+            //}
+            //finally
+            //{
+            //    if (connection.State == ConnectionState.Open)
+            //    {
+            //        await connection.CloseAsync();
+            //    }
+            //}
+            string oldConnectionString = "Server=(localdb)\\mssqllocaldb;Database=ExamSession;Trusted_Connection=True;";
+            SqlConnection connection;
+            using (connection = new SqlConnection(oldConnectionString))
             {
                 connection.Open();
                 //Requests(connection);
