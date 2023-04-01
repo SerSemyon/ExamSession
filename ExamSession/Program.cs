@@ -4,6 +4,9 @@ using System.Data;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Azure;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using ExamSession.Tables;
 
 namespace ExamSession
 {
@@ -226,6 +229,35 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
             ShowTable(reader);
             reader.Close();
         }
+        static void AddProcedure(SqlConnection connection)
+        {
+            string proc1 = "CREATE PROCEDURE get_group_list (this_number_group CHARACTER VARYING(10)) LANGUAGE SQL AS $$ SELECT name, last_name FROM student WHERE number_group = this_number_group;$$";
+            string proc2 = "CREATE PROCEDURE add_student\r\n    (name CHARACTER VARYING(15),\r\n\tlast_Name CHARACTER VARYING(15),\r\n    age INTEGER,\r\n\tphone_number CHARACTER VARYING(16),\r\n\temail CHARACTER VARYING(20),\r\n\tnumber_group CHARACTER VARYING(10))\r\nLANGUAGE SQL\r\nAS $$\r\n    INSERT INTO student\r\n(name, last_name, age, phone_number, email, number_group)\r\n    VALUES (name, last_name, age, phone_number, email, number_group);\r\n  \r\nUPDATE study_group\r\nSET number_of_students = t.number_of_students\r\nFROM (\r\n\t\tSELECT number_group, count(*) AS number_of_students \r\nFROM student \r\nGROUP BY number_group\r\n) t\r\nWHERE study_group.number_group = t.number_group;\r\nSELECT number_of_students FROM study_group \r\nWHERE study_group.number_group = number_group;\r\n$$\r\n";
+            SqlCommand command = new SqlCommand(proc1, connection);
+            command.ExecuteNonQuery();
+            command.CommandText = proc2;
+            command.ExecuteNonQuery();
+            Console.WriteLine("Хранимые процедуры добавлены в базу данных.");
+        }
+        static void ExecuteProcedure(SqlConnection connection)
+        {
+            string sqlExpression = "get_group_list";
+
+            SqlCommand command = new SqlCommand(sqlExpression, connection);
+            // указываем, что команда представляет хранимую процедуру
+            command.CommandType = CommandType.StoredProcedure;
+            // параметр для ввода имени
+            SqlParameter nameParam = new SqlParameter
+            {
+                ParameterName = "@this_number_group ",
+                Value = "09-022"
+            };
+            // добавляем параметр
+            command.Parameters.Add(nameParam);
+            // выполняем процедуру
+            SqlDataReader reader = command.ExecuteReader();
+            ShowTable(reader);
+        }
         static void Requests(SqlConnection connection)
         {
             Console.WriteLine("\nВывести данные куратора группы 09-022");
@@ -257,7 +289,17 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
         {
             using (ExamSessionContext db = new ExamSessionContext())
             {
-
+                var users = (from student in db.Students
+                             where student.NumberGroup == "09-022"
+                             select student).ToList();
+                foreach (var user in users)
+                {
+                    Console.WriteLine(user.Name);
+                }
+                //SqlParameter param = new SqlParameter("@this_number_group", "09-022");
+                //var users = db.Students.FromSqlRaw("get_group_list @this_number_group", param).ToList();
+                //foreach (var u in users)
+                //    Console.WriteLine($"{u.Name}");
             }
             //SqlConnection connection = new SqlConnection(connectionString);
             //try
@@ -284,6 +326,8 @@ VALUES (1, 1, 56, '2021-01-13'),(2, 1, 86, '2021-01-13'),(3, 1, 76, '2021-01-13'
                 connection.Open();
                 //Requests(connection);
                 ShowAllTables(connection);
+                //AddProcedure(connection);
+                ExecuteProcedure(connection);
             }
             Console.Read();
         }

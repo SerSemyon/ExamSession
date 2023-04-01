@@ -25,14 +25,14 @@ public partial class Teacher
 
     public virtual ICollection<TeacherItem> TeacherItems { get; } = new List<TeacherItem>();
 
-    public Teacher(string input)
-    {
-        string[] data = input.Split(',');
-        Name = data[0];
-        LastName = data[1];
-        Patronymic = data[2];
-        Age = int.Parse(data[3]);
-        PhoneNumber = data[4];
-        Email = data[5];
-    }
+    //public Teacher(string input)
+    //{
+    //    string[] data = input.Split(',');
+    //    Name = data[0];
+    //    LastName = data[1];
+    //    Patronymic = data[2];
+    //    Age = int.Parse(data[3]);
+    //    PhoneNumber = data[4];
+    //    Email = data[5];
+    //}
 }
